@@ -30,7 +30,7 @@ export function AgentChat() {
     return localStorage.getItem("active-workflow-run-id") ?? undefined;
   }, []);
 
-  const { messages, error, sendMessage } = useChat<ShoppingAgentUIMessage>({
+  const { messages, error, sendMessage, status, stop } = useChat<ShoppingAgentUIMessage>({
     resume: Boolean(activeRunId),
     transport: new WorkflowChatTransport({
       api: "/api/chat",
@@ -51,6 +51,11 @@ export function AgentChat() {
     sendMessage({ text: input });
     setInput("");
   };
+
+  const lastPart = messages.at(-1)?.parts.at(-1);
+  const isThinking =
+    status === "submitted" ||
+    (status === "streaming" && lastPart?.type !== "text");
 
   if (error) return <div>{error.message}</div>;
 
@@ -82,6 +87,7 @@ export function AgentChat() {
               }
             }),
           )}
+          {isThinking && <ThinkingIndicator />}
         </ConversationContent>
         <ConversationScrollButton />
       </Conversation>
@@ -97,10 +103,32 @@ export function AgentChat() {
           </PromptInputBody>
           <PromptInputFooter>
             <PromptInputTools />
-            <PromptInputSubmit status="ready" disabled={!input.trim()} />
+            <PromptInputSubmit
+              status={status}
+              onStop={stop}
+              disabled={!input.trim() && status === "ready"}
+            />
           </PromptInputFooter>
         </PromptInput>
       </div>
     </div>
+  );
+}
+
+function ThinkingIndicator() {
+  return (
+    <Message from="assistant">
+      <MessageContent>
+        <div
+          className="flex items-center gap-1 py-1"
+          role="status"
+          aria-label="Agent is thinking"
+        >
+          <span className="size-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.3s]" />
+          <span className="size-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.15s]" />
+          <span className="size-2 animate-bounce rounded-full bg-muted-foreground" />
+        </div>
+      </MessageContent>
+    </Message>
   );
 }

@@ -15,6 +15,7 @@ export async function chatFlow(messages: UIMessage[]) {
   const agent = new DurableAgent({
     model: "anthropic/claude-sonnet-4.6",
     instructions: `You are a helpful assistant for the Vercel swag store.
+    Always be very polite, warm, and courteous: greet the user kindly, say please and thank you, and apologize sincerely when something goes wrong or an item is unavailable. Stay polite even if the user is rude or frustrated.
     When the user asks about products, availability, or recommendations, use the searchProducts tool to look up real catalog data before answering.
     When asked about a type or category of product use the getAllCategories tool for getting valid categories before using searchProducts
     When asked for details about a specific product use the getProductDetails tool to retrieve all information
